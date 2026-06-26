@@ -1,0 +1,17 @@
+{
+	"name": "@ironveil/shared-types",
+	"version": "1.0.0",
+	"description": "Types which are shared across the IronVeil monorepo",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc -w",
+		"typecheck": "tsc --noEmit",
+		"clean": "rm -rf dist"
+	},
+	"license": "Apache-2.0",
+	"packageManager": "pnpm@10.26.2"
+}
