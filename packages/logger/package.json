@@ -1,0 +1,20 @@
+{
+	"name": "@ironveil/logger",
+	"version": "1.0.0",
+	"private": true,
+	"description": "Logger package for the IronVeil monorepo",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"typecheck": "tsc --noEmit",
+		"clean": "rm -rf dist"
+	},
+	"license": "Apache-2.0",
+	"packageManager": "pnpm@10.26.2",
+	"dependencies": {
+		"pino": "^10.3.1"
+	}
+}
