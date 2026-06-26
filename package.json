@@ -1,0 +1,36 @@
+{
+	"name": "ironveil",
+	"version": "1.0.0",
+	"description": "IronVeil is a full-stack, event-driven defense intelligence platform",
+	"private": true,
+	"scripts": {
+		"dev": "pnpm -r --parallel run dev",
+		"build": "pnpm -r run build",
+		"lint": "biome check .",
+		"format": "biome check --write .",
+		"test": "pnpm -r run test",
+		"typecheck": "pnpm -r run typecheck"
+	},
+	"workspaces": [
+		"apps/frontend",
+		"apps/backend",
+		"apps/threat-engine",
+		"apps/sensor-simulator",
+		"apps/ai-service",
+		"packages/shared-types",
+		"packages/kafka-client",
+		"packages/logger"
+	],
+	"keywords": [
+		"defense intelligence",
+		"event-driven",
+		"full-stack"
+	],
+	"license": "Apache-2.0",
+	"packageManager": "pnpm@10.26.2",
+	"devDependencies": {
+		"@biomejs/biome": "2.5.1",
+		"@types/node": "^26.0.1",
+		"typescript": "^6.0.3"
+	}
+}
