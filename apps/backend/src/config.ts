@@ -5,6 +5,7 @@ const schema = z.object({
 	serviceName: z.string().default("unknown-service"),
 	logLevel: z.string().default("info"),
 	databaseUrl: z.string().min(1, "DATABASE_URL is required"),
+	redisUrl: z.string().min(1, "REDIS_URL is required"),
 });
 
 const result = schema.safeParse({
@@ -12,6 +13,7 @@ const result = schema.safeParse({
 	serviceName: process.env.SERVICE_NAME,
 	logLevel: process.env.LOG_LEVEL,
 	databaseUrl: process.env.DATABASE_URL,
+	redisUrl: process.env.REDIS_URL,
 });
 
 if (!result.success) {
