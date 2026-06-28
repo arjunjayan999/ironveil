@@ -4,12 +4,14 @@ const schema = z.object({
 	nodeEnv: z.enum(["development", "production", "test"]).default("development"),
 	serviceName: z.string().default("unknown-service"),
 	logLevel: z.string().default("info"),
+	databaseUrl: z.string().min(1, "DATABASE_URL is required"),
 });
 
 const result = schema.safeParse({
 	nodeEnv: process.env.NODE_ENV,
 	serviceName: process.env.SERVICE_NAME,
 	logLevel: process.env.LOG_LEVEL,
+	databaseUrl: process.env.DATABASE_URL,
 });
 
 if (!result.success) {
