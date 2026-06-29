@@ -12,6 +12,7 @@ export type AuditEntityType = "threat" | "alert" | "user" | "zone";
 
 export interface AuditLog {
 	id: string;
+	organizationId: string;
 	userId: string | null;
 	action: AuditAction;
 	entityType: AuditEntityType;

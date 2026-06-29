@@ -14,6 +14,7 @@ export interface ScoreBreakdown {
 
 export interface Threat {
 	id: string;
+	organizationId: string;
 	eventId: string;
 	threatScore: number;
 	threatLevel: ThreatLevel;
@@ -24,6 +25,7 @@ export interface Threat {
 
 export interface Alert {
 	id: string;
+	organizationId: string;
 	threatId: string;
 	message: string;
 	severity: AlertSeverity;

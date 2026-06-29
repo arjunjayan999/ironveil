@@ -17,6 +17,7 @@
 	"packageManager": "pnpm@10.26.2",
 	"dependencies": {
 		"@ironveil/logger": "workspace:*",
+		"@ironveil/shared-types": "workspace:*",
 		"ioredis": "^5.11.1",
 		"pg": "^8.22.0"
 	},

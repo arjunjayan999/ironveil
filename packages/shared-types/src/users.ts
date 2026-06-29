@@ -1,10 +1,9 @@
-export type Role = "ADMIN" | "COMMANDER" | "ANALYST";
+export type Role = "MASTER_ADMIN" | "ADMIN" | "COMMANDER" | "ANALYST";
 
 export interface User {
 	id: string;
 	username: string;
 	email: string;
-	role: Role;
 	createdAt: string;
 }
 
