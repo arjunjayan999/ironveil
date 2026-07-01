@@ -6,6 +6,10 @@ const schema = z.object({
 	logLevel: z.string().default("info"),
 	databaseUrl: z.string().min(1, "DATABASE_URL is required"),
 	redisUrl: z.string().min(1, "REDIS_URL is required"),
+	kafkaBrokers: z
+		.string()
+		.min(1, "KAFKA_BROKERS is required")
+		.transform((s) => s.split(",")),
 });
 
 const result = schema.safeParse({
@@ -14,6 +18,7 @@ const result = schema.safeParse({
 	logLevel: process.env.LOG_LEVEL,
 	databaseUrl: process.env.DATABASE_URL,
 	redisUrl: process.env.REDIS_URL,
+	kafkaBrokers: process.env.KAFKA_BROKERS,
 });
 
 if (!result.success) {
