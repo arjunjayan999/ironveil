@@ -18,6 +18,7 @@
 	"dependencies": {
 		"@ironveil/logger": "workspace:*",
 		"@ironveil/shared-types": "workspace:*",
+		"fastify": "^5.9.0",
 		"ioredis": "^5.11.1",
 		"kafkajs": "^2.2.4",
 		"pg": "^8.22.0",
