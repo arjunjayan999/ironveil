@@ -13,11 +13,12 @@ class Broadcaster {
 	private readonly organizations = new Map<string, Set<ConnectedClient>>();
 
 	add(client: ConnectedClient): void {
-		const clients = this.organizations.get(client.organizationId);
-		if (!this.organizations.has(client.organizationId)) {
-			this.organizations.set(client.organizationId, new Set());
+		let clients = this.organizations.get(client.organizationId);
+		if (!clients) {
+			clients = new Set();
+			this.organizations.set(client.organizationId, clients);
 		}
-		clients?.add(client);
+		clients.add(client);
 		wsConnectedUsers.inc();
 		logger.info(
 			{
