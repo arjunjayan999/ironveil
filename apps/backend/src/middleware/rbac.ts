@@ -1,4 +1,4 @@
-import type { OrganizationParams, Role } from "@ironveil/shared-types";
+import type { Role } from "@ironveil/shared-types";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { findMembership } from "../db/queries/organizationmembers.js";
 
@@ -7,11 +7,8 @@ export function requireRole(...allowed: Role[]) {
 		request: FastifyRequest,
 		reply: FastifyReply,
 	): Promise<void> {
-		const { organizationId } = request.params as OrganizationParams;
-		const membership = await findMembership(
-			organizationId,
-			request.user.sub,
-		);
+		const { organizationId } = request.params as { organizationId: string };
+		const membership = await findMembership(organizationId, request.user.sub);
 		if (!membership) {
 			return reply.status(403).send({
 				error: "Forbidden",
