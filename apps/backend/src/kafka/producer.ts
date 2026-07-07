@@ -58,3 +58,27 @@ export async function publishAuditEvent(
 		messages: [{ key: entityId, value: JSON.stringify(envelope) }],
 	});
 }
+
+export async function publishThreatUpdatedEvent(
+	organizationId: string,
+	threatId: string,
+	oldStatus: string,
+	newStatus: string,
+): Promise<void> {
+	const p = await getProducer();
+	const envelope: KafkaEnvelope<{
+		organizationId: string;
+		threatId: string;
+		oldStatus: string;
+		newStatus: string;
+	}> = {
+		messageId: crypto.randomUUID(),
+		timestamp: new Date().toISOString(),
+		version: "1.0",
+		payload: { organizationId, threatId, oldStatus, newStatus },
+	};
+	await p.send({
+		topic: "threat-updated-events",
+		messages: [{ key: threatId, value: JSON.stringify(envelope) }],
+	});
+}

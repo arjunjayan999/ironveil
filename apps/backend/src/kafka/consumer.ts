@@ -1,5 +1,10 @@
 import { logger } from "@ironveil/logger";
-import type { KafkaEnvelope, Threat, WSMessage } from "@ironveil/shared-types";
+import type {
+	KafkaEnvelope,
+	Threat,
+	ThreatUpdatedData,
+	WSMessage,
+} from "@ironveil/shared-types";
 import { type Consumer, Kafka } from "kafkajs";
 import { config } from "../config.js";
 import { writeAuditLog } from "../db/queries/audit.js";
@@ -17,12 +22,17 @@ export async function startConsumer(): Promise<void> {
 	consumer = kafka.consumer({ groupId: "backend-ws-broadcaster" });
 	await consumer.connect();
 	await consumer.subscribe({
-		topics: ["threat-events", "alerts"],
+		topics: [
+			"threat-events",
+			"threat-updated-events",
+			"audit-events",
+			"alerts",
+		],
 		fromBeginning: false,
 	});
 
 	logger.info(
-		"Kafka consumer started - subscribing to threat-events, audit-events",
+		"Kafka consumer started - subscribing to threat-events, threat-updated-events, audit-events, alerts",
 	);
 
 	await consumer.run({
@@ -35,6 +45,10 @@ export async function startConsumer(): Promise<void> {
 				) as KafkaEnvelope<unknown>;
 				if (topic === "threat-events") {
 					await handleThreatEvent(raw as KafkaEnvelope<Threat>);
+				} else if (topic === "threat-updated-events") {
+					await handleThreatUpdatedEvent(
+						raw as KafkaEnvelope<ThreatUpdatedData>,
+					);
 				} else if (topic === "audit-events") {
 					await handleAuditEvent(raw);
 				}
@@ -60,6 +74,23 @@ async function handleThreatEvent(
 		{ threatId: threat.id, level: threat.threatLevel },
 		"Threat event broadcast via WebSocket",
 	);
+}
+
+async function handleThreatUpdatedEvent(
+	envelope: KafkaEnvelope<ThreatUpdatedData>,
+): Promise<void> {
+	const p = envelope.payload;
+	const wsMessage: WSMessage<ThreatUpdatedData> = {
+		event: "threat_updated",
+		timestamp: new Date().toISOString(),
+		data: {
+			organizationId: p.organizationId,
+			threatId: p.threatId,
+			oldStatus: p.oldStatus,
+			newStatus: p.newStatus,
+		},
+	};
+	broadcaster.broadcast(p.organizationId, wsMessage);
 }
 
 async function handleAuditEvent(
