@@ -10,6 +10,12 @@ const schema = z.object({
 		.string()
 		.min(1, "KAFKA_BROKERS is required")
 		.transform((s) => s.split(",")),
+	frontendUrl: z
+		.url()
+		.default("http://localhost:5173")
+		.transform((url) => url.replace(/\/$/, "")),
+	jwtSecret: z.string().min(32, "JWT_SECRET must be atleast 32 characters"),
+	port: z.coerce.number().int().min(1).max(65535).default(3000),
 });
 
 const result = schema.safeParse({
@@ -19,6 +25,9 @@ const result = schema.safeParse({
 	databaseUrl: process.env.DATABASE_URL,
 	redisUrl: process.env.REDIS_URL,
 	kafkaBrokers: process.env.KAFKA_BROKERS,
+	frontendUrl: process.env.FRONTEND_URL,
+	jwtSecret: process.env.JWT_SECRET,
+	port: process.env.PORT,
 });
 
 if (!result.success) {
