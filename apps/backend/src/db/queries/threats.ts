@@ -31,16 +31,18 @@ function toThreat(row: ThreatRow): Threat {
 }
 
 export interface ListThreatsFilter {
-	organizationId: string;
-	level?: ThreatLevel;
-	status?: ThreatStatus;
+	level?: ThreatLevel | undefined;
+	status?: ThreatStatus | undefined;
 	page: number;
 	limit: number;
 }
 
-export async function listThreats(filter: ListThreatsFilter) {
+export async function listThreats(
+	organizationId: string,
+	filter: ListThreatsFilter,
+) {
 	const conditions: string[] = ["organization_id = $1"];
-	const params: unknown[] = [filter.organizationId];
+	const params: unknown[] = [organizationId];
 	let paramIndex = 2;
 
 	if (filter.level) {

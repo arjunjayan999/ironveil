@@ -30,18 +30,20 @@ function toAuditLog(row: AuditRow): AuditLog {
 }
 
 export interface AuditFilter {
-	organizationId: string;
-	userId?: string;
-	action?: string;
-	from?: string;
-	to?: string;
+	userId?: string | undefined;
+	action?: string | undefined;
+	from?: string | undefined;
+	to?: string | undefined;
 	page: number;
 	limit: number;
 }
 
-export async function listAuditLogs(filter: AuditFilter) {
+export async function listAuditLogs(
+	organizationId: string,
+	filter: AuditFilter,
+) {
 	const conditions: string[] = ["organization_id = $1"];
-	const params: unknown[] = [filter.organizationId];
+	const params: unknown[] = [organizationId];
 	let paramIndex = 2;
 
 	if (filter.userId) {
@@ -82,7 +84,7 @@ export async function listAuditLogs(filter: AuditFilter) {
 
 export async function writeAuditLog(
 	userId: string | null,
-	organizationId: string,
+	organizationId: string | null,
 	action: AuditAction,
 	entityType: AuditEntityType,
 	entityId: string,
