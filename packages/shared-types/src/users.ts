@@ -10,7 +10,6 @@ export interface User {
 export interface JWTPayload {
 	sub: string;
 	username: string;
-	role: Role;
 	iat: number;
 	exp: number;
 }
