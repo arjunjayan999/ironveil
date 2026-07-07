@@ -5,7 +5,7 @@
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
-		"dev": "tsx watch src/index.ts",
+		"dev": "tsx watch --env-file=.env src/index.ts",
 		"build": "tsc",
 		"start": "node dist/index.js",
 		"typecheck": "tsc --noEmit",
@@ -16,8 +16,12 @@
 	"license": "Apache-2.0",
 	"packageManager": "pnpm@10.26.2",
 	"dependencies": {
+		"@fastify/cors": "^11.2.0",
+		"@fastify/jwt": "^10.1.0",
+		"@fastify/websocket": "^11.2.0",
 		"@ironveil/logger": "workspace:*",
 		"@ironveil/shared-types": "workspace:*",
+		"argon2": "^0.44.0",
 		"fastify": "^5.9.0",
 		"ioredis": "^5.11.1",
 		"kafkajs": "^2.2.4",

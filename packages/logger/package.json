@@ -16,5 +16,8 @@
 	"packageManager": "pnpm@10.26.2",
 	"dependencies": {
 		"pino": "^10.3.1"
+	},
+	"devDependencies": {
+		"pino-pretty": "^13.1.3"
 	}
 }
