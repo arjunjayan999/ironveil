@@ -1,7 +1,7 @@
-import { Redis } from "ioredis";
-import { config } from "../config.js";
 import { logger } from "@ironveil/logger";
 import type { ThreatLevel } from "@ironveil/shared-types";
+import { Redis } from "ioredis";
+import { config } from "../config.js";
 
 export const redis = new Redis(config.redisUrl, {
 	maxRetriesPerRequest: 3,
