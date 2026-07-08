@@ -2,6 +2,7 @@ export type SensorSourceType = "drone" | "radar" | "cyber";
 
 export interface SensorEvent {
 	id: string;
+	organizationId: string;
 	sourceType: SensorSourceType;
 	sourceId: string;
 	latitude: number;
