@@ -15,6 +15,7 @@
 	"dependencies": {
 		"@ironveil/logger": "workspace:*",
 		"@ironveil/shared-types": "workspace:*",
+		"ioredis": "^5.11.1",
 		"pg": "^8.22.0"
 	},
 	"keywords": [],
