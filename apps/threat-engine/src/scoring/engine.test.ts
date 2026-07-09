@@ -165,4 +165,28 @@ describe("buildAlertMessage", () => {
 		const message = buildAlertMessage(event, 20);
 		expect(message).toContain("UNCONFIRMED");
 	});
+
+	it("includes high speed information when speed exceeds threshold", () => {
+		const event: SensorEvent = { ...safeEvent, speedKnots: 151 };
+		const message = buildAlertMessage(event, 15);
+		expect(message).toContain("151 knots");
+		expect(message).toContain("exceeds 150");
+	});
+
+	it("includes high altitude information when altitude exceeds threshold", () => {
+		const event: SensorEvent = { ...safeEvent, altitudeMeters: 10_001 };
+		const message = buildAlertMessage(event, 10);
+		expect(message).toContain("10001m");
+		expect(message).toContain("exceeds 10000m");
+	});
+
+	it("uses 'unknown' when a restricted zone has no zone ID", () => {
+		const event: SensorEvent = {
+			...safeEvent,
+			inRestrictedZone: true,
+			zoneId: null,
+		};
+		const message = buildAlertMessage(event, 40);
+		expect(message).toContain("entered restricted zone unknown");
+	});
 });
