@@ -79,6 +79,9 @@ importers:
       ioredis:
         specifier: ^5.11.1
         version: 5.11.1
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
       pg:
         specifier: ^8.22.0
         version: 8.22.0
