@@ -11,6 +11,7 @@ const schema = z.object({
 		.min(1, "KAFKA_BROKERS is required")
 		.transform((s) => s.split(",")),
 	kafkaHeartbeatIntervalMs: z.coerce.number().default(3000),
+	healthPort: z.coerce.number().default(3001),
 });
 
 const result = schema.safeParse({
@@ -21,6 +22,7 @@ const result = schema.safeParse({
 	redisUrl: process.env.REDIS_URL,
 	kafkaBrokers: process.env.KAFKA_BROKERS,
 	kafkaHeartbeatIntervalMs: process.env.KAFKA_HEARTBEAT_INTERVAL_MS,
+	healthPort: process.env.HEALTH_PORT,
 });
 
 if (!result.success) {
