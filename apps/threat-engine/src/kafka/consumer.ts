@@ -10,6 +10,7 @@ import {
 	incrementAlertCounter,
 	incrementThreatCounter,
 	markProcessed,
+	wasProcessed,
 } from "../redis/client.js";
 import { buildAlertMessage, scoreEvent } from "../scoring/engine.js";
 import { publishAuditEvent, publishThreatEvent } from "./producer.js";
@@ -78,8 +79,8 @@ async function handleMessage({
 		return;
 	}
 
-	const isNew = await markProcessed(envelope.messageId);
-	if (!isNew) {
+	const alreadyProcessed = await wasProcessed(envelope.messageId);
+	if (alreadyProcessed) {
 		logger.warn(
 			{ messageId: envelope.messageId },
 			"Duplicate message detected - skipping",
@@ -95,6 +96,7 @@ async function handleMessage({
 
 	try {
 		await processEvent(envelope.payload, topic);
+		await markProcessed(envelope.messageId);
 		if (!consumer) {
 			throw new Error("Consumer not initialized");
 		}

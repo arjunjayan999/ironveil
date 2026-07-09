@@ -25,13 +25,11 @@ export async function incrementAlertCounter(orgId: string): Promise<void> {
 	await redis.incr(`org:${orgId}:counters:active-alerts`);
 }
 
-export async function markProcessed(messageId: string): Promise<boolean> {
-	const result = await redis.set(
-		`processed:${messageId}`,
-		"1",
-		"EX",
-		3600,
-		"NX",
-	);
-	return result === "OK";
+export async function wasProcessed(messageId: string): Promise<boolean> {
+	const exists = await redis.exists(`processed:${messageId}`);
+	return exists === 1;
+}
+
+export async function markProcessed(messageId: string): Promise<void> {
+	await redis.set(`processed:${messageId}`, "1", "EX", 3600);
 }
