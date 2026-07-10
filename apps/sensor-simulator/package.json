@@ -1,0 +1,20 @@
+{
+	"name": "@ironveil/sensor-simulator",
+	"version": "1.0.0",
+	"private": true,
+	"type": "module",
+	"main": "index.js",
+	"scripts": {
+		"dev": "tsx watch --env-file=.env src/index.ts",
+		"build": "tsc",
+		"start": "node dist/index.js",
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@ironveil/logger": "workspace:*",
+		"@ironveil/shared-types": "workspace:*",
+		"pg": "^8.22.0"
+	},
+	"license": "Apache-2.0",
+	"packageManager": "pnpm@10.26.2"
+}
