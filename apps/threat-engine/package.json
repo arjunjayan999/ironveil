@@ -20,9 +20,7 @@
 		"kafkajs": "^2.2.4",
 		"pg": "^8.22.0"
 	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
+	"license": "Apache-2.0",
 	"packageManager": "pnpm@10.26.2",
 	"devDependencies": {
 		"@vitest/coverage-v8": "^4.1.10",

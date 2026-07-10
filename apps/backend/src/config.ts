@@ -39,4 +39,3 @@ if (!result.success) {
 }
 
 export const config = result.data;
-export type Config = typeof config;
