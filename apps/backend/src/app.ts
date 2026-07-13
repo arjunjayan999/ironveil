@@ -17,6 +17,7 @@ import { threatRoutes } from "./routes/threats.js";
 import { userRoutes } from "./routes/users.js";
 import { websocketRoutes } from "./routes/websocket.js";
 import { zoneRoutes } from "./routes/zones.js";
+import { simulatorRoutes } from "./routes/simulator.js";
 
 export async function buildApp() {
 	const fastify = Fastify({
@@ -59,7 +60,9 @@ export async function buildApp() {
 
 	await fastify.register(healthRoutes);
 	await fastify.register(websocketRoutes);
-
+	await fastify.register(simulatorRoutes, {
+		prefix: "/api/v1/simulator/:organizationId",
+	});
 	await fastify.register(authRoutes, { prefix: "/api/v1/auth" });
 	await fastify.register(userRoutes, { prefix: "/api/v1/users" });
 	await fastify.register(organizationRoutes, {
