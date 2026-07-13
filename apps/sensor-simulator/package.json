@@ -11,8 +11,12 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@fastify/cors": "^11.2.0",
+		"@fastify/jwt": "^10.1.0",
 		"@ironveil/logger": "workspace:*",
 		"@ironveil/shared-types": "workspace:*",
+		"fastify": "^5.9.0",
+		"kafkajs": "^2.2.4",
 		"pg": "^8.22.0"
 	},
 	"license": "Apache-2.0",

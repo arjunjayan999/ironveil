@@ -5,6 +5,20 @@ const schema = z.object({
 	serviceName: z.string().default("unknown-service"),
 	logLevel: z.string().default("info"),
 	databaseUrl: z.string().min(1, "DATABASE_URL is required"),
+	fleetSize: z.coerce.number().min(1).max(100).default(15),
+	centerLat: z.coerce.number().default(50.5),
+	centerLon: z.coerce.number().default(4.0),
+	emitIntervalMs: z.coerce.number().min(100).default(2000),
+	healthPort: z.coerce.number().default(3002),
+	frontendUrl: z
+		.url()
+		.default("http://localhost:5173")
+		.transform((url) => url.replace(/\/$/, "")),
+	jwtSecret: z.string().min(32, "JWT_SECRET must be atleast 32 characters"),
+	kafkaBrokers: z
+		.string()
+		.min(1, "KAFKA_BROKERS is required")
+		.transform((s) => s.split(",")),
 });
 
 const result = schema.safeParse({
@@ -12,6 +26,14 @@ const result = schema.safeParse({
 	serviceName: process.env.SERVICE_NAME,
 	logLevel: process.env.LOG_LEVEL,
 	databaseUrl: process.env.DATABASE_URL,
+	fleetSize: process.env.FLEET_SIZE,
+	centerLat: process.env.CENTER_LAT,
+	centerLon: process.env.CENTER_LON,
+	emitIntervalMs: process.env.EMIT_INTERVAL_MS,
+	healthPort: process.env.HEALTH_PORT,
+	frontendUrl: process.env.FRONTEND_URL,
+	jwtSecret: process.env.JWT_SECRET,
+	kafkaBrokers: process.env.KAFKA_BROKERS,
 });
 
 if (!result.success) {

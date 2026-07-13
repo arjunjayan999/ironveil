@@ -70,12 +70,24 @@ importers:
 
   apps/sensor-simulator:
     dependencies:
+      '@fastify/cors':
+        specifier: ^11.2.0
+        version: 11.2.0
+      '@fastify/jwt':
+        specifier: ^10.1.0
+        version: 10.1.0
       '@ironveil/logger':
         specifier: workspace:*
         version: link:../../packages/logger
       '@ironveil/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      fastify:
+        specifier: ^5.9.0
+        version: 5.9.0
+      kafkajs:
+        specifier: ^2.2.4
+        version: 2.2.4
       pg:
         specifier: ^8.22.0
         version: 8.22.0
