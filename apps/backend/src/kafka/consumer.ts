@@ -1,6 +1,8 @@
 import { logger } from "@ironveil/logger";
 import type {
+	DronePositionData,
 	KafkaEnvelope,
+	SensorEvent,
 	Threat,
 	ThreatUpdatedData,
 	WSMessage,
@@ -27,6 +29,7 @@ export async function startConsumer(): Promise<void> {
 			"threat-updated-events",
 			"audit-events",
 			"alerts",
+			"drone-events",
 		],
 		fromBeginning: false,
 	});
@@ -51,6 +54,8 @@ export async function startConsumer(): Promise<void> {
 					);
 				} else if (topic === "audit-events") {
 					await handleAuditEvent(raw);
+				} else if (topic === "drone-events") {
+					await handleDroneEvent(raw as KafkaEnvelope<SensorEvent>);
 				}
 			} catch (err) {
 				logger.error({ err, topic }, "Failed to process Kafka message");
@@ -113,6 +118,27 @@ async function handleAuditEvent(
 		p.entityId,
 		p.metadata || null,
 	);
+}
+
+async function handleDroneEvent(
+	envelope: KafkaEnvelope<SensorEvent>,
+): Promise<void> {
+	const event = envelope.payload;
+
+	const wsMessage: WSMessage<DronePositionData> = {
+		event: "drone_position",
+		timestamp: new Date().toISOString(),
+		data: {
+			droneId: event.sourceId,
+			latitude: event.latitude,
+			longitude: event.longitude,
+			altitudeMeters: event.altitudeMeters,
+			speedKnots: event.speedKnots,
+			threatLevel: null,
+		},
+	};
+
+	broadcaster.broadcast(event.organizationId, wsMessage);
 }
 
 export async function stopConsumer(): Promise<void> {
