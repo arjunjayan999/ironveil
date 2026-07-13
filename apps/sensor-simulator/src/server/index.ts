@@ -1,79 +1,105 @@
-import cors from "@fastify/cors";
-import fjwt from "@fastify/jwt";
-import { type Logger, logger } from "@ironveil/logger";
-import Fastify from "fastify";
-import { config } from "../config.js";
+import { createServer } from "node:http";
+import { logger } from "@ironveil/logger";
 import { startGenerator, stopGenerator } from "../index.js";
-import { authenticate } from "../middleware/auth.js";
-import { requireRole } from "../middleware/rbac.js";
 import { activateScenario, type ScenarioName } from "../scenarios/index.js";
 
-export async function startServer(port: number) {
-	const app = Fastify({
-		loggerInstance: logger as Logger,
-		trustProxy: true,
-	});
+export function startServer(port: number): void {
+	const server = createServer(async (req, res) => {
+		res.setHeader("Content-Type", "application/json");
+		if (req.method === "GET" && req.url === "/healthz") {
+			res.writeHead(200);
+			res.end(
+				JSON.stringify({
+					status: "ok",
+					uptime: process.uptime(),
+				}),
+			);
+			return;
+		}
 
-	await app.register(cors, {
-		origin: config.nodeEnv === "production" ? config.frontendUrl : true,
-		credentials: true,
-	});
+		let body: Record<string, unknown> = {};
 
-	await app.register(fjwt, {
-		secret: config.jwtSecret,
-	});
+		if (req.method === "POST") {
+			const chunks: Buffer[] = [];
 
-	app.post(
-		"/api/v1/simulator/:organizationId/scenario",
-		{ preHandler: [authenticate, requireRole("ADMIN")] },
-		async (request, reply) => {
-			const { organizationId } = request.params as { organizationId: string };
+			for await (const chunk of req) {
+				chunks.push(chunk as Buffer);
+			}
 
-			const { scenario } = request.body as { scenario: ScenarioName };
+			if (chunks.length > 0) {
+				try {
+					body = JSON.parse(Buffer.concat(chunks).toString()) as Record<
+						string,
+						unknown
+					>;
+				} catch {
+					res.writeHead(400);
+					res.end(JSON.stringify({ error: "Invalid JSON body" }));
+					return;
+				}
+			}
+		}
+
+		if (req.method === "POST" && req.url === "/scenario") {
+			const { scenario, organizationId } = body as {
+				scenario: ScenarioName;
+				organizationId: string;
+			};
 
 			activateScenario(organizationId, scenario);
-			reply.send({
-				success: true,
-				organizationId: organizationId,
-				scenario: scenario,
-			});
-		},
-	);
 
-	app.post(
-		"/api/v1/simulator/:organizationId/start",
-		{ preHandler: [authenticate, requireRole("ADMIN")] },
-		async (request, reply) => {
-			const { organizationId } = request.params as { organizationId: string };
+			res.writeHead(200);
+			res.end(
+				JSON.stringify({
+					success: true,
+					organizationId,
+					scenario,
+				}),
+			);
+			return;
+		}
+
+		if (req.method === "POST" && req.url === "/start") {
+			const { organizationId } = body as {
+				organizationId: string;
+			};
+
 			await startGenerator(organizationId);
-			reply.send({
-				success: true,
-				organizationId: organizationId,
-				running: true,
-			});
-		},
-	);
 
-	app.post(
-		"/api/v1/simulator/:organizationId/stop",
-		{ preHandler: [authenticate, requireRole("ADMIN")] },
-		async (request, reply) => {
-			const { organizationId } = request.params as { organizationId: string };
+			res.writeHead(200);
+			res.end(
+				JSON.stringify({
+					success: true,
+					organizationId,
+					running: true,
+				}),
+			);
+			return;
+		}
+
+		if (req.method === "POST" && req.url === "/stop") {
+			const { organizationId } = body as {
+				organizationId: string;
+			};
+
 			stopGenerator(organizationId);
-			reply.send({
-				success: true,
-				organizationId: organizationId,
-				running: false,
-			});
-		},
-	);
 
-	app.get("/healthz", async (_request, reply) => {
-		return reply.send({
-			status: "ok",
-			uptime: process.uptime(),
-		});
+			res.writeHead(200);
+			res.end(
+				JSON.stringify({
+					success: true,
+					organizationId,
+					running: false,
+				}),
+			);
+			return;
+		}
+
+		res.writeHead(404);
+		res.end(JSON.stringify({ error: "Not Found" }));
 	});
 
-	await app.listen({ port, host: "0.0.0.0" });
+	server.listen(port, "0.0.0.0", () => {
+		logger.info({ port }, "Simulator server listening");
+	});
 }
