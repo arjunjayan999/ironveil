@@ -10,11 +10,6 @@ const schema = z.object({
 	centerLon: z.coerce.number().default(4.0),
 	emitIntervalMs: z.coerce.number().min(100).default(2000),
 	healthPort: z.coerce.number().default(3002),
-	frontendUrl: z
-		.url()
-		.default("http://localhost:5173")
-		.transform((url) => url.replace(/\/$/, "")),
-	jwtSecret: z.string().min(32, "JWT_SECRET must be atleast 32 characters"),
 	kafkaBrokers: z
 		.string()
 		.min(1, "KAFKA_BROKERS is required")
@@ -31,8 +26,6 @@ const result = schema.safeParse({
 	centerLon: process.env.CENTER_LON,
 	emitIntervalMs: process.env.EMIT_INTERVAL_MS,
 	healthPort: process.env.HEALTH_PORT,
-	frontendUrl: process.env.FRONTEND_URL,
-	jwtSecret: process.env.JWT_SECRET,
 	kafkaBrokers: process.env.KAFKA_BROKERS,
 });
 

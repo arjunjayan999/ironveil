@@ -16,6 +16,10 @@ const schema = z.object({
 		.transform((url) => url.replace(/\/$/, "")),
 	jwtSecret: z.string().min(32, "JWT_SECRET must be atleast 32 characters"),
 	port: z.coerce.number().int().min(1).max(65535).default(3000),
+	simulatorUrl: z
+		.url()
+		.default("http://localhost:3002")
+		.transform((url) => url.replace(/\/$/, "")),
 });
 
 const result = schema.safeParse({
@@ -28,6 +32,7 @@ const result = schema.safeParse({
 	frontendUrl: process.env.FRONTEND_URL,
 	jwtSecret: process.env.JWT_SECRET,
 	port: process.env.PORT,
+	simulatorUrl: process.env.SIMULATOR_URL,
 });
 
 if (!result.success) {
