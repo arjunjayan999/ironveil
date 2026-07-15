@@ -35,7 +35,7 @@ export async function startConsumer(): Promise<void> {
 	});
 
 	logger.info(
-		"Kafka consumer started - subscribing to threat-events, threat-updated-events, audit-events, alerts",
+		"Kafka consumer started - subscribing to threat-events, threat-updated-events, audit-events, alerts, drone-events",
 	);
 
 	await consumer.run({

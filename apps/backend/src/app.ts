@@ -13,11 +13,11 @@ import { healthRoutes } from "./routes/health.js";
 import { organizationInvitationRoutes } from "./routes/invitations.js";
 import { organizationMemberRoutes } from "./routes/organizationMembers.js";
 import { organizationRoutes } from "./routes/organizations.js";
+import { simulatorRoutes } from "./routes/simulator.js";
 import { threatRoutes } from "./routes/threats.js";
 import { userRoutes } from "./routes/users.js";
 import { websocketRoutes } from "./routes/websocket.js";
 import { zoneRoutes } from "./routes/zones.js";
-import { simulatorRoutes } from "./routes/simulator.js";
 
 export async function buildApp() {
 	const fastify = Fastify({
