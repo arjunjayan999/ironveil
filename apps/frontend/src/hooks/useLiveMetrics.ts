@@ -95,7 +95,7 @@ export function useLiveMetrics(organizationId: string): LiveMetrics {
 						recentAlerts: [alert, ...prev.recentAlerts].slice(0, MAX_RECENT),
 						activityFeed: [
 							feedEntry(
-								`Alert: ${alert.severity} — ${alert.message.slice(0, 60)}…`,
+								`Alert: ${alert.severity} - ${alert.message.slice(0, 60)}…`,
 							),
 							...prev.activityFeed,
 						].slice(0, MAX_FEED),
