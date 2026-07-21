@@ -1,7 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { writeAuditLog } from "../db/queries/audit.js";
-import { listUserOrganizations } from "../db/queries/organizationmembers.js";
+import {
+	addMember,
+	listUserOrganizations,
+} from "../db/queries/organizationmembers.js";
 import {
 	createOrganization,
 	deleteOrganization,
@@ -48,9 +51,10 @@ export const organizationRoutes: FastifyPluginAsync = async (fastify) => {
 		}
 		const { name, slug } = result.data;
 		const organization = await createOrganization(name, slug, request.user.sub);
+		await addMember(organization.id, request.user.sub, "ADMIN");
 		await writeAuditLog(
 			request.user.sub,
-			null,
+			organization.id,
 			"ORGANIZATION_CREATED",
 			"organization",
 			organization.id,
