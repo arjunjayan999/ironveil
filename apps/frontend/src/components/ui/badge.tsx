@@ -26,9 +26,14 @@ const badgeVariants = cva(
 				review: "bg-purple-900/40 text-purple-400 border-purple-800",
 				resolved: "bg-gray-800 text-gray-400 border-gray-700",
 			},
+			size: {
+				sm: "h-5 px-2 py-0.5 text-xs",
+				md: "h-6 px-3 py-1 text-sm",
+			},
 		},
 		defaultVariants: {
 			variant: "default",
+			size: "sm",
 		},
 	},
 );
@@ -36,6 +41,7 @@ const badgeVariants = cva(
 function Badge({
 	className,
 	variant = "default",
+	size = "sm",
 	asChild = false,
 	...props
 }: React.ComponentProps<"span"> &
@@ -46,7 +52,8 @@ function Badge({
 		<Comp
 			data-slot="badge"
 			data-variant={variant}
-			className={cn(badgeVariants({ variant }), className)}
+			data-size={size}
+			className={cn(badgeVariants({ variant, size }), className)}
 			{...props}
 		/>
 	);

@@ -1,6 +1,8 @@
 import type { Role } from "@ironveil/shared-types";
+import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Navigate } from "react-router";
+import { getMyOrganizations } from "@/api/organizations.js";
 import { useAuth } from "../auth/context.js";
 
 interface ProtectedRouteProps {
@@ -12,8 +14,15 @@ export function ProtectedRoute({
 	children,
 	allowedRoles,
 }: ProtectedRouteProps) {
-	const { isAuthenticated, currentOrganization } = useAuth();
+	const { isAuthenticated, currentOrganizationId } = useAuth();
+	const { data: organizations } = useQuery({
+		queryKey: ["organizations"],
+		queryFn: getMyOrganizations,
+	});
 
+	const currentOrganization = organizations?.find(
+		(org) => org.organizationId === currentOrganizationId,
+	);
 	if (!isAuthenticated) {
 		return <Navigate to="/login" replace />;
 	}
