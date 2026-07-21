@@ -1,22 +1,26 @@
 import type { User } from "@ironveil/shared-types";
 import { createContext, type ReactNode, useContext, useState } from "react";
-import { login as apiLogin, logout as apiLogout } from "../api/auth.js";
 import {
-	getMyOrganizations,
-	type OrganizationMembership,
-} from "../api/organizations.js";
+	login as apiLogin,
+	logout as apiLogout,
+	register as apiRegister,
+} from "../api/auth.js";
+import { getMyOrganizations } from "../api/organizations.js";
 
 interface AuthState {
 	user: User | null;
-	organizations: OrganizationMembership[];
 	currentOrganizationId: string | null;
 	isAuthenticated: boolean;
 }
 
-interface AuthContextValue extends Omit<AuthState, "currentOrganizationId"> {
-	currentOrganization: OrganizationMembership | null;
+interface AuthContextValue extends AuthState {
 	setCurrentOrganization: (organizationId: string) => void;
 	login: (username: string, password: string) => Promise<void>;
+	register: (
+		username: string,
+		email: string,
+		password: string,
+	) => Promise<void>;
 	logout: () => void;
 }
 
@@ -25,7 +29,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<AuthState>({
 		user: null,
-		organizations: [],
 		currentOrganizationId: null,
 		isAuthenticated: false,
 	});
@@ -36,7 +39,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 		setState({
 			user,
-			organizations,
+			currentOrganizationId: organizations[0]?.organizationId ?? null,
+			isAuthenticated: true,
+		});
+	};
+
+	const register = async (
+		username: string,
+		email: string,
+		password: string,
+	) => {
+		const { user } = await apiRegister(username, email, password);
+		const organizations = await getMyOrganizations();
+
+		setState({
+			user,
 			currentOrganizationId: organizations[0]?.organizationId ?? null,
 			isAuthenticated: true,
 		});
@@ -46,7 +63,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		apiLogout();
 		setState({
 			user: null,
-			organizations: [],
 			currentOrganizationId: null,
 			isAuthenticated: false,
 		});
@@ -59,18 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}));
 	};
 
-	const currentOrganization =
-		state.organizations.find(
-			(o) => o.organizationId === state.currentOrganizationId,
-		) ?? null;
-
 	return (
 		<AuthContext.Provider
 			value={{
 				...state,
-				currentOrganization,
 				setCurrentOrganization,
 				login,
+				register,
 				logout,
 			}}
 		>
