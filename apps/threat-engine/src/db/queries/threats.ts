@@ -18,7 +18,15 @@ export async function insertThreat(
 	params: InsertThreatParams,
 ): Promise<string> {
 	const result = await pool.query<{ id: string }>(
-		"INSERT INTO threats (organization_id, event_id, threat_score, threat_level, threat_status, score_breakdown) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		`INSERT INTO threats (
+		organization_id,
+		event_id,
+		threat_score,
+		threat_level,
+		status,
+		score_breakdown
+	) VALUES ($1, $2, $3, $4, $5, $6)
+	RETURNING id`,
 		[
 			params.organizationId,
 			params.eventId,
