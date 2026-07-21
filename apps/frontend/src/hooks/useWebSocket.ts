@@ -19,7 +19,9 @@ export function useWebSocket(
 		if (!token || !mounted.current) return;
 
 		const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-		const url = `${protocol}://${window.location.host}/${organizationId}/ws/events?token=${token}`;
+		const url =
+			`${protocol}://${window.location.host}` +
+			`/api/v1/organizations/${organizationId}/ws/events?token=${token}`;
 
 		const socket = new WebSocket(url);
 		ws.current = socket;

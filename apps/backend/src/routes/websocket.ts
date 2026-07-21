@@ -6,7 +6,7 @@ import { broadcaster } from "../websocket/broadcaster.js";
 
 export const websocketRoutes: FastifyPluginAsync = async (fastify) => {
 	fastify.get(
-		"/:organizationId/ws/events",
+		"/api/v1/organizations/:organizationId/ws/events",
 		{ websocket: true },
 		async (socket, request) => {
 			const query = request.query as { token?: string };
