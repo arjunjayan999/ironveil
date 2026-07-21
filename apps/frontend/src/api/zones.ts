@@ -2,9 +2,11 @@ import type { RestrictedZone } from "@ironveil/shared-types";
 import type { SingleResponse } from "../types/api.js";
 import { apiRequest } from "./client.js";
 
-export async function listZones(): Promise<RestrictedZone[]> {
+export async function listZones(
+	organizationId: string,
+): Promise<RestrictedZone[]> {
 	const result = await apiRequest<{ data: RestrictedZone[] }>(
-		"/api/v1/organizations/:organizationId/zones",
+		`/api/v1/organizations/${organizationId}/zones`,
 	);
 	return result.data;
 }

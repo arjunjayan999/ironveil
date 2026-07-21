@@ -5,6 +5,10 @@ interface LoginResponse {
 	token: string;
 	user: User;
 }
+interface RegisterResponse {
+	token: string;
+	user: User;
+}
 
 export async function login(
 	username: string,
@@ -14,6 +18,24 @@ export async function login(
 		method: "POST",
 		body: JSON.stringify({ username, password }),
 	});
+	setToken(result.token);
+	return result;
+}
+
+export async function register(
+	username: string,
+	email: string,
+	password: string,
+): Promise<RegisterResponse> {
+	const result = await apiRequest<RegisterResponse>("/api/v1/auth/register", {
+		method: "POST",
+		body: JSON.stringify({
+			username,
+			email,
+			password,
+		}),
+	});
+
 	setToken(result.token);
 	return result;
 }

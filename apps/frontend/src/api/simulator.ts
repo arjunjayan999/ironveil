@@ -9,3 +9,15 @@ export async function triggerScenario(
 		body: JSON.stringify({ scenario }),
 	});
 }
+
+export async function startSimulator(organizationId: string): Promise<void> {
+	await apiRequest(`/api/v1/simulator/${organizationId}/start`, {
+		method: "POST",
+	});
+}
+
+export async function stopSimulator(organizationId: string): Promise<void> {
+	await apiRequest(`/api/v1/simulator/${organizationId}/stop`, {
+		method: "POST",
+	});
+}

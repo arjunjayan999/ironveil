@@ -31,7 +31,10 @@ export async function apiRequest<T>(
 	}
 
 	const headers = new Headers(fetchOptions.headers);
-	headers.set("Content-Type", "application/json");
+
+	if (fetchOptions.body !== undefined) {
+		headers.set("Content-Type", "application/json");
+	}
 
 	if (authToken) {
 		headers.set("Authorization", `Bearer ${authToken}`);
