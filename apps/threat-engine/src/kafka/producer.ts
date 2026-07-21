@@ -34,7 +34,7 @@ export async function disconnectProducer(): Promise<void> {
 
 export interface PublishThreatEventParams {
 	organizationId: string;
-	threatId: string;
+	id: string;
 	eventId: string;
 	threatScore: number;
 	threatLevel: ThreatLevel;
@@ -57,7 +57,7 @@ export async function publishThreatEvent(
 		topic: "threat-events",
 		messages: [
 			{
-				key: params.threatId,
+				key: params.id,
 				value: JSON.stringify(envelope),
 			},
 		],

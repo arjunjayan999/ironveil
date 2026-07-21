@@ -148,7 +148,7 @@ async function processEvent(event: SensorEvent, topic: string): Promise<void> {
 
 	await publishThreatEvent({
 		organizationId: event.organizationId,
-		threatId,
+		id: threatId,
 		eventId,
 		threatScore,
 		threatLevel,
