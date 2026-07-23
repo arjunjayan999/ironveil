@@ -20,6 +20,10 @@ const schema = z.object({
 		.url()
 		.default("http://localhost:3002")
 		.transform((url) => url.replace(/\/$/, "")),
+	aiServiceUrl: z
+		.url()
+		.default("http://localhost:3003")
+		.transform((url) => url.replace(/\/$/, "")),
 });
 
 const result = schema.safeParse({
@@ -33,6 +37,7 @@ const result = schema.safeParse({
 	jwtSecret: process.env.JWT_SECRET,
 	port: process.env.PORT,
 	simulatorUrl: process.env.SIMULATOR_URL,
+	aiServiceUrl: process.env.AI_SERVICE_URL,
 });
 
 if (!result.success) {

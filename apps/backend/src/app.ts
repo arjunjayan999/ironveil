@@ -6,6 +6,7 @@ import type { FastifyError } from "fastify";
 import Fastify from "fastify";
 import { config } from "./config.js";
 import { httpRequestDuration, httpRequestsTotal } from "./metrics/index.js";
+import { aiRoutes } from "./routes/ai.js";
 import { alertRoutes } from "./routes/alerts.js";
 import { auditRoutes } from "./routes/audit.js";
 import { authRoutes } from "./routes/auth.js";
@@ -60,6 +61,7 @@ export async function buildApp() {
 
 	await fastify.register(healthRoutes);
 	await fastify.register(websocketRoutes);
+	await fastify.register(aiRoutes, { prefix: "/api/v1/ai" });
 	await fastify.register(simulatorRoutes, {
 		prefix: "/api/v1/simulator/:organizationId",
 	});
