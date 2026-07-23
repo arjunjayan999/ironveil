@@ -1,7 +1,8 @@
 import type { ScoreBreakdown } from "@ironveil/shared-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import { getSimilarThreats, requestSummary } from "@/api/ai.js";
 import { getMyOrganizations } from "@/api/organizations.js";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,151 @@ function ScoreBar({ breakdown }: { breakdown: ScoreBreakdown }) {
 						+{r.value}
 					</span>
 				</div>
+			))}
+		</div>
+	);
+}
+
+function AiSummaryPanel({
+	threatId,
+	existingSummary,
+}: {
+	threatId: string;
+	existingSummary: { summary: string; modelName: string } | null;
+}) {
+	const queryClient = useQueryClient();
+
+	const { data, isLoading, isFetching } = useQuery({
+		queryKey: ["ai-summary", threatId],
+		queryFn: () => requestSummary(threatId),
+		initialData: existingSummary
+			? {
+					id: "",
+					threatId,
+					summary: existingSummary.summary,
+					modelName: existingSummary.modelName,
+					generatedAt: "",
+				}
+			: undefined,
+		staleTime: Number.POSITIVE_INFINITY,
+	});
+
+	const generate = useMutation({
+		mutationFn: () => requestSummary(threatId, false),
+		onSuccess: () => {
+			toast.success("Summary generated");
+			void queryClient.invalidateQueries({
+				queryKey: ["ai-summary", threatId],
+			});
+		},
+		onError: (err) =>
+			toast.error("Summary failed", {
+				description: (err as Error).message,
+			}),
+	});
+
+	if (isLoading || isFetching || generate.isPending) {
+		return (
+			<div className="flex items-center gap-3 py-4">
+				<Spinner size="sm" />
+				<span className="text-sm text-muted-foreground">
+					Generating intelligence summary…
+				</span>
+			</div>
+		);
+	}
+
+	if (!data) {
+		return (
+			<div className="flex flex-col items-center gap-3 py-6">
+				<p className="text-sm text-muted-foreground">
+					No summary has been generated yet.
+				</p>
+				<Button size="sm" onClick={() => generate.mutate()}>
+					Generate Summary
+				</Button>
+			</div>
+		);
+	}
+
+	return (
+		<div>
+			<p className="text-sm leading-relaxed text-muted-foreground">
+				{data.summary}
+			</p>
+
+			<div className="mt-3 flex items-center justify-between">
+				<span className="text-xs text-muted-foreground">
+					Model: {data.modelName}
+				</span>
+
+				<Button variant="ghost" size="sm" onClick={() => generate.mutate()}>
+					Regenerate
+				</Button>
+			</div>
+		</div>
+	);
+}
+
+function SimilarIncidentsPanel({
+	threatId,
+	hasSummary,
+}: {
+	threatId: string;
+	hasSummary: boolean;
+}) {
+	const { data, isLoading } = useQuery({
+		queryKey: ["similar-threats", threatId],
+		queryFn: () => getSimilarThreats(threatId),
+		enabled: hasSummary,
+	});
+
+	if (!hasSummary) {
+		return (
+			<p className="text-sm text-muted-foreground">
+				Generate a summary first to enable similarity search.
+			</p>
+		);
+	}
+
+	if (isLoading) {
+		return (
+			<div className="flex justify-center py-4">
+				<Spinner size="sm" />
+			</div>
+		);
+	}
+
+	if (!data?.length) {
+		return (
+			<p className="text-sm text-muted-foreground">
+				No similar incidents found.
+			</p>
+		);
+	}
+
+	return (
+		<div className="space-y-2">
+			{data.map((item) => (
+				<Link
+					key={item.threatId}
+					to={`/threats/${item.threatId}`}
+					className="block rounded border p-3 transition-colors hover:bg-muted/50"
+				>
+					<div className="mb-1 flex items-center justify-between">
+						<span className="font-mono text-xs text-primary">
+							{item.threatId.slice(0, 12)}…
+						</span>
+
+						<span className="text-xs text-muted-foreground">
+							Similarity: {(item.score * 100).toFixed(0)}%
+						</span>
+					</div>
+
+					<p className="truncate text-xs text-muted-foreground">
+						{item.payload.summaryPreview}
+					</p>
+				</Link>
 			))}
 		</div>
 	);
@@ -236,21 +382,10 @@ export function ThreatDetailPage() {
 						<CardTitle>Intelligence Summary</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{threat.aiSummary ? (
-							<p className="text-sm leading-relaxed text-muted-foreground">
-								{threat.aiSummary.summary}
-							</p>
-						) : (
-							<div className="flex flex-col items-center gap-3 py-4">
-								<p className="text-sm text-muted-foreground">
-									No summary generated yet.
-								</p>
-								<p className="text-xs text-muted-foreground">
-									AI summaries functionality is not implemented yet. This is a
-									placeholder for future functionality.
-								</p>
-							</div>
-						)}
+						<AiSummaryPanel
+							threatId={threat.id}
+							existingSummary={threat.aiSummary}
+						/>
 					</CardContent>
 				</Card>
 			</div>
@@ -272,6 +407,18 @@ export function ThreatDetailPage() {
 					</CardContent>
 				</Card>
 			)}
+			<Card>
+				<CardHeader className="border-b">
+					<CardTitle>Similar Incidents</CardTitle>
+				</CardHeader>
+
+				<CardContent>
+					<SimilarIncidentsPanel
+						threatId={threat.id}
+						hasSummary={!!threat.aiSummary}
+					/>
+				</CardContent>
+			</Card>
 		</div>
 	);
 }
