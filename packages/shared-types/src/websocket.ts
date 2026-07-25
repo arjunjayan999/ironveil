@@ -31,7 +31,7 @@ export interface MetricsUpdateData {
 
 export interface ThreatUpdatedData {
 	organizationId: string;
-	id: string;
+	threatId: string;
 	oldStatus: string;
 	newStatus: string;
 }
