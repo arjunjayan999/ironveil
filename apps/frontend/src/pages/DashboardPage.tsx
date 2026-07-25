@@ -58,10 +58,12 @@ export function DashboardPage() {
 		(org) => org.organizationId === currentOrganizationId,
 	);
 	const metrics = useLiveMetrics(currentOrganization?.organizationId ?? "");
+	const organizationId = currentOrganization?.organizationId;
 	const { data, isLoading } = useQuery({
-		queryKey: ["threats", "recent"],
+		queryKey: ["threats", "recent", organizationId],
+		enabled: !!organizationId,
 		queryFn: () =>
-			listThreats(currentOrganization?.organizationId ?? "", {
+			listThreats(organizationId ?? "", {
 				limit: 10,
 				page: 1,
 			}),
