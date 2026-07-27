@@ -24,7 +24,7 @@ COPY apps/frontend ./apps/frontend
 RUN pnpm --filter @ironveil/shared-types build
 RUN pnpm --filter @ironveil/frontend build
 
-RUN pnpm deploy --filter @ironveil/frontend --prod /prod
+RUN pnpm deploy --legacy --filter @ironveil/frontend --prod /prod
 
 # Stage 3: Production image
 FROM nginx:1.27-alpine AS runtime

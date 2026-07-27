@@ -27,7 +27,7 @@ RUN pnpm --filter @ironveil/logger build
 
 RUN pnpm --filter @ironveil/backend build
 
-RUN pnpm deploy --filter @ironveil/backend --prod /prod
+RUN pnpm deploy --legacy --filter @ironveil/backend --prod /prod
 
 # Stage 3: Production image
 FROM node:22-alpine AS runtime

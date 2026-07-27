@@ -27,7 +27,7 @@ RUN pnpm --filter @ironveil/logger build
 
 RUN pnpm --filter @ironveil/sensor-simulator build
 
-RUN pnpm deploy --filter @ironveil/sensor-simulator --prod /prod
+RUN pnpm deploy --legacy --filter @ironveil/sensor-simulator --prod /prod
 
 # Stage 3: Production image
 FROM node:22-alpine AS runtime
