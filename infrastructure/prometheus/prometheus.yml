@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "ironveil-backend"
+    static_configs:
+      - targets: ["backend:3000"]
+    metrics_path: /metrics
+
+  - job_name: "ironveil-threat-engine"
+    static_configs:
+      - targets: ["threat-engine:3001"]
+    metrics_path: /metrics
+
+  - job_name: "ironveil-ai-service"
+    static_configs:
+      - targets: ["ai-service:3003"]
+    metrics_path: /metrics
