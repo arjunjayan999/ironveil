@@ -1,16 +1,26 @@
 name: ironveil
 
+x-app-defaults: &app-defaults
+  restart: unless-stopped
+  networks:
+    - ironveil-net
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: ironveil-postgres
-    restart: unless-stopped
+    <<: [*app-defaults, *logging]
     environment:
       POSTGRES_USER: ironveil
-      POSTGRES_PASSWORD: ironveil_dev_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ironveil
-    ports:
-      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -23,26 +33,43 @@ services:
   flyway:
     image: flyway/flyway:10
     container_name: ironveil-flyway
+    <<: *app-defaults
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      FLYWAY_URL: jdbc:postgresql://postgres:5432/ironveil
+      FLYWAY_USER: ironveil
+      FLYWAY_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      FLYWAY_LOCATIONS: filesystem:/flyway/sql
+      FLYWAY_SCHEMAS: public
+      FLYWAY_CONNECT_RETRIES: 30
     command: migrate
     volumes:
-      - ../../apps/backend/migrations:/flyway/sql
-      - ../../apps/backend/migrations/flyway/conf:/flyway/conf
+      - ../flyway/sql:/flyway/sql:ro
     restart: "no"
 
   redis:
     image: redis:7-alpine
     container_name: ironveil-redis
-    restart: unless-stopped
-    command: redis-server --requirepass ironveil_dev_password --appendonly yes
-    ports:
-      - '6379:6379'
+    <<: [*app-defaults, *logging]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command: >
+      sh -c 'redis-server
+      --requirepass "$REDIS_PASSWORD"
+      --appendonly yes'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '-a', 'ironveil_dev_password', 'ping']
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "-a",
+          "${REDIS_PASSWORD}",
+          "ping"
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -50,14 +77,14 @@ services:
   kafka:
     image: apache/kafka:3.7.0
     container_name: ironveil-kafka
-    restart: unless-stopped
+    <<: [*app-defaults, *logging]
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,HOST://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
@@ -67,8 +94,6 @@ services:
       KAFKA_LOG_RETENTION_HOURS: 168  
       KAFKA_LOG_DIRS: /var/lib/kafka/data
       CLUSTER_ID: 'ironveil-kafka-cluster-01'
-    ports:
-      - '29092:29092'
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
@@ -81,17 +106,20 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.18.3
     container_name: ironveil-qdrant
-    restart: unless-stopped
-    ports:
-      - '6333:6333'  
-      - '6334:6334'  
+    <<: [*app-defaults, *logging]  
     volumes:
       - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:6333/healthz || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: ironveil-kafka-ui
-    restart: unless-stopped
+    <<: [*app-defaults, *logging]
     depends_on:
       kafka:
         condition: service_healthy
@@ -101,8 +129,199 @@ services:
     ports:
       - '8080:8080'
 
+  backend:
+    build:
+      context: ../..
+      dockerfile: apps/backend/Dockerfile
+    container_name: ironveil-backend
+    <<: [*app-defaults, *logging]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SERVICE_NAME: backend
+      NODE_ENV: production
+      LOG_LEVEL: info
+      PORT: 3000
+      DATABASE_URL: postgresql://ironveil:${POSTGRES_PASSWORD}@postgres:5432/ironveil
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      KAFKA_BROKERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      AI_SERVICE_URL: http://ai-service:3003
+      SIMULATOR_URL: http://sensor-simulator:3002
+      FRONTEND_URL: http://frontend:80
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  threat-engine:
+    build:
+      context: ../..
+      dockerfile: apps/threat-engine/Dockerfile
+    container_name: ironveil-threat-engine
+    <<: [*app-defaults, *logging]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      SERVICE_NAME: threat-engine
+      NODE_ENV: production
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://ironveil:${POSTGRES_PASSWORD}@postgres:5432/ironveil
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      KAFKA_BROKERS: kafka:9092
+      HEALTH_PORT: 3001
+      KAFKA_HEARTBEAT_INTERVAL_MS: 3000
+    expose:
+      - "3001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  sensor-simulator:
+    build:
+      context: ../..
+      dockerfile: apps/sensor-simulator/Dockerfile
+    container_name: ironveil-simulator
+    <<: [*app-defaults, *logging]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      SERVICE_NAME: sensor-simulator
+      NODE_ENV: production
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://ironveil:${POSTGRES_PASSWORD}@postgres:5432/ironveil
+      KAFKA_BROKERS: kafka:9092
+      EMIT_INTERVAL_MS: 2000
+      FLEET_SIZE: 15
+      CENTER_LAT: 50.5
+      CENTER_LON: 4.0
+      HEALTH_PORT: 3002
+    expose:
+      - "3002"
+
+  ai-service:
+    build:
+      context: ../..
+      dockerfile: apps/ai-service/Dockerfile
+    container_name: ironveil-ai-service
+    <<: [*app-defaults, *logging]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      SERVICE_NAME: ai-service
+      NODE_ENV: production
+      LOG_LEVEL: info
+      DATABASE_URL: postgresql://ironveil:${POSTGRES_PASSWORD}@postgres:5432/ironveil
+      KAFKA_BROKERS: kafka:9092
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ironveil-threats
+      AI_PROVIDER: gemini
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?GEMINI_API_KEY is required}
+      GEMINI_SUMMARY_MODEL: gemini-2.5-flash
+      GEMINI_EMBEDDING_MODEL: text-embedding-004
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_SUMMARY_MODEL: llama3.1 
+      OLLAMA_EMBEDDING_MODEL: nomic-embed-text
+      HEALTH_PORT: 3003
+      MIN_SUMMARY_LEVEL: MEDIUM
+    expose:
+      - "3003"
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: apps/frontend/Dockerfile
+    container_name: ironveil-frontend
+    <<: [*app-defaults, *logging]
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:80/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ironveil-nginx
+    <<: [*app-defaults, *logging]
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: ironveil-prometheus
+    <<: [*app-defaults, *logging]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=7d"
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: ironveil-grafana
+    <<: [*app-defaults, *logging]
+    depends_on:
+      - prometheus
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:?GF_SECURITY_ADMIN_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../grafana/provisioning:/etc/grafana/provisioning
+
 volumes:
   postgres_data:
   redis_data:
   kafka_data:
   qdrant_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  ironveil-net:
+    driver: bridge
