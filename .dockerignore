@@ -6,11 +6,6 @@
 **/.turbo
 **/.cache
 
-apps/frontend
-apps/ai-service
-apps/threat-engine
-apps/sensor-simulator
-
 README.md
 .vscode
 .idea
