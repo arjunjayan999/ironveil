@@ -24,12 +24,10 @@ COPY apps/frontend ./apps/frontend
 RUN pnpm --filter @ironveil/shared-types build
 RUN pnpm --filter @ironveil/frontend build
 
-RUN pnpm deploy --legacy --filter @ironveil/frontend --prod /prod
-
 # Stage 3: Production image
 FROM nginx:1.27-alpine AS runtime
 
-COPY --from=build /prod/dist /usr/share/nginx/html
+COPY --from=build /app/apps/frontend/dist /usr/share/nginx/html
 
 RUN echo 'server { \
   listen 80; \
