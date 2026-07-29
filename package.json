@@ -9,6 +9,7 @@
 		"lint": "biome check .",
 		"format": "biome check --write .",
 		"test": "pnpm -r run test",
+		"test:e2e": "pnpm -F @ironveil/frontend test:e2e",
 		"typecheck": "pnpm -r run typecheck"
 	},
 	"workspaces": [
