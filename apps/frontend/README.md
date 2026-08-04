@@ -1,34 +1,42 @@
-# React + TypeScript + Vite
+# Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The Frontend is a single-page application (SPA) built with **React**, **TypeScript**, and **Tailwind CSS**. It serves as the primary user interface for the IronVeil platform, allowing users to start the Sensor Simulator, monitor live drone activity, investigate detected threats, perform semantic searches, and view system metrics. The application receives real-time drone events, threat alerts, and metrics over WebSockets while interacting with the Backend through REST APIs. Key pages include the **Dashboard**, **Threat Center**, **Live Map**, **Audit Log**, and **Settings**.
 
-Currently, two official plugins are available:
+## Running Standalone
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Before starting the Frontend, ensure the Backend API is running.
 
-## React Compiler
+Start the development server:
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The application is available at:
+
+```
+http://localhost:5173
+```
+
+## Running Tests
+
+Run the unit and component tests (Vitest):
+
+```bash
+pnpm test
+```
+
+Run the end-to-end test suite (Playwright):
+
+```bash
+pnpm test:e2e
+```
+
+> **Note:** End-to-end tests require the complete application stack (Frontend, Backend, PostgreSQL, Redis, Kafka, and supporting services) to be running.
+
+## Related Docs
+
+- [`../../docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) - System architecture and service interactions.
+- [`../../docs/API_REFERENCE.md`](../../docs/API_REFERENCE.md) - Backend REST API reference.
+- [`../../docs/SECURITY.md`](../../docs/SECURITY.md) - Authentication and security design.
+```
